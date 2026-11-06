@@ -35,7 +35,7 @@ describe('OrderStateMachine Unit Tests', () => {
       ).not.toThrow();
     });
 
-    it('allows FAILED -> PENDING when actor is ADMIN (Retry)', () => {
+    it('allows FAILED -> PENDING through admin retry', () => {
       expect(OrderStateMachine.isAllowed(OrderStatus.FAILED, OrderStatus.PENDING)).toBe(true);
       expect(() =>
         OrderStateMachine.validate({
@@ -47,17 +47,7 @@ describe('OrderStateMachine Unit Tests', () => {
     });
   });
 
-  describe('Invalid and unauthorized transitions', () => {
-    it('rejects FAILED -> PENDING when actor is CUSTOMER', () => {
-      expect(() =>
-        OrderStateMachine.validate({
-          from: OrderStatus.FAILED,
-          to: OrderStatus.PENDING,
-          actorRole: UserRole.CUSTOMER,
-        })
-      ).toThrow(ForbiddenError);
-    });
-
+  describe('Invalid transitions', () => {
     it('rejects PENDING -> ACTIVE directly', () => {
       expect(OrderStateMachine.isAllowed(OrderStatus.PENDING, OrderStatus.ACTIVE)).toBe(false);
       expect(() =>
@@ -78,23 +68,26 @@ describe('OrderStateMachine Unit Tests', () => {
       ).toThrow(InvalidStateTransitionError);
     });
 
-    it('rejects ACTIVE -> any other state (terminal state)', () => {
-      const allStates: OrderStatus[] = [
-        OrderStatus.PENDING,
-        OrderStatus.PROVISIONING,
-        OrderStatus.FAILED,
-      ];
+    it('rejects ACTIVE -> PROVISIONING (ACTIVE is terminal)', () => {
+      expect(OrderStateMachine.isAllowed(OrderStatus.ACTIVE, OrderStatus.PROVISIONING)).toBe(false);
+      expect(() =>
+        OrderStateMachine.validate({
+          from: OrderStatus.ACTIVE,
+          to: OrderStatus.PROVISIONING,
+          actorRole: UserRole.ADMIN,
+        })
+      ).toThrow(InvalidStateTransitionError);
+    });
 
-      for (const target of allStates) {
-        expect(OrderStateMachine.isAllowed(OrderStatus.ACTIVE, target)).toBe(false);
-        expect(() =>
-          OrderStateMachine.validate({
-            from: OrderStatus.ACTIVE,
-            to: target,
-            actorRole: UserRole.ADMIN,
-          })
-        ).toThrow(InvalidStateTransitionError);
-      }
+    it('rejects ACTIVE -> FAILED (ACTIVE is terminal)', () => {
+      expect(OrderStateMachine.isAllowed(OrderStatus.ACTIVE, OrderStatus.FAILED)).toBe(false);
+      expect(() =>
+        OrderStateMachine.validate({
+          from: OrderStatus.ACTIVE,
+          to: OrderStatus.FAILED,
+          actorRole: UserRole.ADMIN,
+        })
+      ).toThrow(InvalidStateTransitionError);
     });
 
     it('rejects FAILED -> ACTIVE directly', () => {
@@ -106,6 +99,27 @@ describe('OrderStateMachine Unit Tests', () => {
           actorRole: UserRole.ADMIN,
         })
       ).toThrow(InvalidStateTransitionError);
+    });
+
+    it('rejects FAILED -> PROVISIONING without retry', () => {
+      expect(OrderStateMachine.isAllowed(OrderStatus.FAILED, OrderStatus.PROVISIONING)).toBe(false);
+      expect(() =>
+        OrderStateMachine.validate({
+          from: OrderStatus.FAILED,
+          to: OrderStatus.PROVISIONING,
+          actorRole: UserRole.ADMIN,
+        })
+      ).toThrow(InvalidStateTransitionError);
+    });
+
+    it('rejects FAILED -> PENDING when non-admin attempts retry', () => {
+      expect(() =>
+        OrderStateMachine.validate({
+          from: OrderStatus.FAILED,
+          to: OrderStatus.PENDING,
+          actorRole: UserRole.CUSTOMER,
+        })
+      ).toThrow(ForbiddenError);
     });
   });
 
@@ -137,4 +151,3 @@ describe('OrderStateMachine Unit Tests', () => {
     });
   });
 });
-

@@ -151,6 +151,34 @@ describe('Order Creation & State Machine Integration Tests (Real DB)', () => {
       )
     ).rejects.toThrow(ValidationError);
 
+    // Mailbox count < 1 (0)
+    await expect(
+      orderService.createOrder(
+        customer1.id,
+        {
+          domain: 'valid-domain.com',
+          provider: 'GOOGLE',
+          mailboxCount: 0,
+        },
+        `${key}-zero`,
+        customer1.id
+      )
+    ).rejects.toThrow(ValidationError);
+
+    // Invalid provider
+    await expect(
+      orderService.createOrder(
+        customer1.id,
+        {
+          domain: 'valid-domain.com',
+          provider: 'UNSUPPORTED_PROVIDER',
+          mailboxCount: 5,
+        },
+        `${key}-provider`,
+        customer1.id
+      )
+    ).rejects.toThrow(ValidationError);
+
     // Invalid domain
     await expect(
       orderService.createOrder(

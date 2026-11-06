@@ -1,12 +1,12 @@
 # Mailbox Order Manager - Developer & Agent Guide (CLAUDE.md)
 
 ## 1. Project Overview & Architecture
-This project is an internal management tool for selling and provisioning pre-warmed Google and Microsoft mailboxes.
+This project is an internal management tool for selling and provisioning pre-warmed Google Workspace and Microsoft 365 mailboxes.
 
 ### Core Stack
-- **Framework:** Next.js (App Router, React 19)
+- **Framework:** Next.js 15 (App Router, React 19)
 - **Language:** TypeScript (Strict Mode enabled)
-- **Database:** PostgreSQL (running via Docker Compose)
+- **Database:** PostgreSQL 16 (running via Docker Compose)
 - **ORM:** Prisma ORM
 - **Validation:** Zod
 - **Styling:** Tailwind CSS
@@ -19,7 +19,7 @@ This project is an internal management tool for selling and provisioning pre-war
 1. **Layered Architecture**:
    - **Presentation Layer (`src/app/`, `src/components/`)**:
      - Route handlers (`src/app/api/...`) and React components MUST NOT contain business logic or direct database queries.
-     - Route handlers only parse request parameters, validate schemas with Zod, call the Service Layer, and serialize standardized responses.
+     - Route handlers only parse request parameters, validate schemas with Zod, call the Service Layer, and serialize standardized responses via `jsonSuccess()` / `jsonError()`.
    - **Service Layer (`src/server/services/`)**:
      - Orchestrates business use cases, coordinates repository operations, invokes the State Machine, and publishes audit logs.
    - **Domain / State Machine Layer (`src/core/`)**:
@@ -30,10 +30,10 @@ This project is an internal management tool for selling and provisioning pre-war
      - Independent asynchronous job processor that claims and provisions orders safely without race conditions.
 
 2. **Design Patterns**:
-   - **Strategy Pattern (`src/core/providers/`)**: `IMailboxProviderStrategy` implemented by `GoogleMailboxProvider` and `MicrosoftMailboxProvider`.
+   - **Strategy Pattern (`src/core/providers/`)**: `IMailboxProvider` implemented by `GoogleProvider` and `MicrosoftProvider`, resolved by `MailboxProviderStrategyFactory`.
    - **State Machine Pattern (`src/core/state-machine/`)**: Pure state transitions (`PENDING -> PROVISIONING -> ACTIVE | FAILED` and `FAILED -> PENDING`). Rejects invalid transitions strictly.
-   - **Repository Pattern (`src/server/repositories/`)**: Explicit repositories decoupling persistence from application logic.
-   - **Service Layer Pattern (`src/server/services/`)**: Business logic facade for use cases.
+   - **Repository Pattern (`src/server/repositories/`)**: `OrderRepository`, `UserRepository`, `AuditLogRepository` decoupling persistence from application logic.
+   - **Service Layer Pattern (`src/server/services/`)**: `OrderService` and `AuthService` acting as application use-case facades.
    - **Queue & Worker Pattern (`src/server/worker/`)**: PostgreSQL-backed job processing with `FOR UPDATE SKIP LOCKED` concurrency protection.
 
 3. **Concurrency & Worker Safety**:
@@ -41,12 +41,14 @@ This project is an internal management tool for selling and provisioning pre-war
    - Worker queries use row-level locking (`FOR UPDATE SKIP LOCKED`) within transactions to atomically transition `PENDING -> PROVISIONING`.
 
 4. **Idempotency**:
-   - Order creation enforces an `idempotencyKey` unique constraint. Re-submitting the same key returns the existing order safely without duplicate creations.
+   - Order creation enforces an `idempotencyKey` scoped compound unique constraint `@@unique([customerId, idempotencyKey])`.
+   - Submitting the same key with identical payload returns the committed order safely (`idempotentReplay: true`).
+   - Submitting the same key with different parameters is rejected with `ConflictError` (HTTP 409).
 
 5. **Strict TypeScript & Error Handling**:
-   - No `any`. Strict null checks.
-   - Domain errors inherit from `DomainError` (`ValidationError`, `InvalidStateTransitionError`, `NotFoundError`, `UnauthorizedError`, `ForbiddenError`).
-   - Unified API error response format: `{ success: false, error: { code: string, message: string, details?: unknown } }`.
+   - Zero `any`. Strict null checks enabled.
+   - Domain errors inherit from `DomainError` (`ValidationError`, `InvalidStateTransitionError`, `NotFoundError`, `UnauthorizedError`, `ForbiddenError`, `ConflictError`).
+   - Unified API response format: `{ success: boolean, data?: T, error?: { code: string, message: string, details?: unknown } }`.
 
 ---
 
@@ -78,7 +80,7 @@ npm run worker
 
 ### Testing & Code Quality
 ```bash
-# Run unit & integration tests
+# Run all unit & integration tests
 npm test
 
 # Run tests in watch mode
@@ -91,7 +93,6 @@ npx tsc --noEmit
 ---
 
 ## 4. Seeded Accounts & Roles
-- **Admin User**: `admin@example.com` (Role: `ADMIN`) - Full visibility, retry failed orders, filter by status and provider.
-- **Customer User 1**: `customer1@example.com` (Role: `CUSTOMER`) - View own orders, create orders, view mailbox details and audit log.
-- **Customer User 2**: `customer2@example.com` (Role: `CUSTOMER`) - Separate tenant for verifying data isolation.
-
+- **Admin User**: `admin@example.com` / `Password123!` (Role: `ADMIN`) - Full visibility, retry failed orders, filter by status and provider.
+- **Customer User 1**: `customer1@example.com` / `Password123!` (Role: `CUSTOMER`) - View own orders, create orders, view mailbox details and audit log.
+- **Customer User 2**: `customer2@example.com` / `Password123!` (Role: `CUSTOMER`) - Separate tenant for verifying multi-tenant data isolation.

@@ -22,3 +22,4 @@ export async function POST(
     return jsonError(error);
   }
 }
+

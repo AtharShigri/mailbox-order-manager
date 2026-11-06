@@ -138,13 +138,7 @@ export class OrderService {
       actorId: adminUser.id,
     });
 
-    return this.orderRepo.updateStatusWithAudit({
-      orderId: order.id,
-      fromStatus: order.status,
-      toStatus: OrderStatus.PENDING,
-      actorId: adminUser.id,
-      description: `Order retry triggered by admin (${adminUser.email})`,
-    });
+    return this.orderRepo.resetForRetry(order.id, adminUser.id, adminUser.email);
   }
 
   private verifyIdempotencyPayloadMatch(

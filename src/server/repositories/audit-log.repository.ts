@@ -35,3 +35,4 @@ export class AuditLogRepository {
 }
 
 export const auditLogRepository = new AuditLogRepository();
+

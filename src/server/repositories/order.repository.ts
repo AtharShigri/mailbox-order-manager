@@ -240,6 +240,135 @@ export class OrderRepository {
       },
     };
   }
+
+  /**
+   * Atomically claims the next PENDING order using PostgreSQL FOR UPDATE SKIP LOCKED.
+   * Guarantees that concurrent workers never claim or process the same order.
+   */
+  async claimNextPendingOrder(targetOrderId?: string): Promise<OrderWithDetails | null> {
+    return prisma.$transaction(async (tx) => {
+      const candidate = targetOrderId
+        ? await tx.$queryRaw<{ id: string }[]>`
+            SELECT id FROM "orders"
+            WHERE id = ${targetOrderId} AND status = 'PENDING'::"OrderStatus"
+            FOR UPDATE SKIP LOCKED
+          `
+        : await tx.$queryRaw<{ id: string }[]>`
+            SELECT id FROM "orders"
+            WHERE status = 'PENDING'::"OrderStatus"
+            ORDER BY "createdAt" ASC
+            LIMIT 1
+            FOR UPDATE SKIP LOCKED
+          `;
+
+      if (!candidate || candidate.length === 0) {
+        return null;
+      }
+
+      const orderId = candidate[0]!.id;
+
+      const updated = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.PROVISIONING,
+          lockedAt: new Date(),
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          orderId: updated.id,
+          previousStatus: OrderStatus.PENDING,
+          newStatus: OrderStatus.PROVISIONING,
+          actorId: 'SYSTEM_WORKER',
+          description: 'Background worker claimed order for mailbox provisioning',
+        },
+      });
+
+      return tx.order.findUniqueOrThrow({
+        where: { id: updated.id },
+        include: {
+          mailboxes: { orderBy: { createdAt: 'asc' } },
+          auditLogs: { orderBy: { createdAt: 'asc' } },
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+            },
+          },
+        },
+      });
+    });
+  }
+
+  async updateMailboxStatus(
+    mailboxId: string,
+    status: MailboxStatus,
+    errorMessage?: string
+  ): Promise<void> {
+    await prisma.mailbox.update({
+      where: { id: mailboxId },
+      data: {
+        status,
+        errorMessage: errorMessage ?? null,
+      },
+    });
+  }
+
+  /**
+   * Resets a FAILED order to PENDING and clears mailbox error states for admin retry.
+   */
+  async resetForRetry(
+    orderId: string,
+    actorId: string,
+    actorEmail: string
+  ): Promise<OrderWithDetails> {
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.PENDING,
+          lockedAt: null,
+        },
+      });
+
+      await tx.mailbox.updateMany({
+        where: { orderId: updated.id },
+        data: {
+          status: MailboxStatus.PENDING,
+          errorMessage: null,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          orderId: updated.id,
+          previousStatus: OrderStatus.FAILED,
+          newStatus: OrderStatus.PENDING,
+          actorId,
+          description: `Order retry triggered by admin (${actorEmail}). All mailboxes reset to PENDING.`,
+        },
+      });
+
+      return tx.order.findUniqueOrThrow({
+        where: { id: updated.id },
+        include: {
+          mailboxes: { orderBy: { createdAt: 'asc' } },
+          auditLogs: { orderBy: { createdAt: 'asc' } },
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+            },
+          },
+        },
+      });
+    });
+  }
 }
 
 export const orderRepository = new OrderRepository();

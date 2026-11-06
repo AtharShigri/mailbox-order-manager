@@ -34,3 +34,4 @@ export const orderQuerySchema = z.object({
 });
 
 export type OrderQueryInput = z.infer<typeof orderQuerySchema>;
+

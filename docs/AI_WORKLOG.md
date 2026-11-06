@@ -89,3 +89,4 @@ The project was executed using an iterative, layered architecture methodology ac
 | **Phase 5** | Next.js API Routes, Customer & Admin Dashboards | 45 mins |
 | **Phase 6** | End-to-End Testing, Bug Fixes & Documentation | 30 mins |
 | **Total** | **Complete Full-Stack Application** | **~3 hours 40 mins** |
+

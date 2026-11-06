@@ -121,3 +121,4 @@ npx tsc --noEmit
 - **Mock Mailbox Providers**: Google and Microsoft providers simulate delays and 20% random failure rates in development. In production, these would connect to Google Workspace Admin SDK and Microsoft Graph API via OAuth2 credentials.
 - **Worker Scalability**: The current implementation polls PostgreSQL using `FOR UPDATE SKIP LOCKED`. For enterprise scale (millions of jobs/day), a dedicated message queue (e.g. AWS SQS or RabbitMQ) or PostgreSQL `LISTEN/NOTIFY` can eliminate polling latency.
 - **Token Invalidation**: Session tokens are stateless signed JWTs in `HttpOnly` cookies. For instant revocation across all devices, a Redis token blacklist or database session table can be introduced.
+

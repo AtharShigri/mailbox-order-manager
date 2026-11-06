@@ -9,11 +9,11 @@ interface RouteContext {
 }
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   context: RouteContext
 ) {
   try {
-    const adminUser = await requireRole(UserRole.ADMIN);
+    const adminUser = await requireRole(UserRole.ADMIN, request);
     const { id } = await context.params;
 
     const order = await orderService.retryOrder(id, adminUser);

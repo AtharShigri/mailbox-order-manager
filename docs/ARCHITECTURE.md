@@ -98,3 +98,4 @@ When multiple worker processes run concurrently, PostgreSQL grants an exclusive 
 ### Rejected Alternative: External Message Broker (Redis + BullMQ)
 - **What it is:** Introducing Redis and BullMQ / Celery to handle queue management.
 - **Why rejected:** Unnecessary infrastructure overhead for this application. PostgreSQL `SKIP LOCKED` delivers ACID-compliant, durable queueing with zero extra daemon dependencies, zero network serialization drift between database and queue, and exact atomic status transitions.
+

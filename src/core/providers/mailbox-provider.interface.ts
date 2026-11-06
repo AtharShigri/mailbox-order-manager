@@ -13,3 +13,4 @@ export interface IMailboxProvider {
   provisionMailbox(email: string): Promise<ProvisionMailboxResult>;
   provisionMailboxes(emails: string[]): Promise<ProvisionMailboxResult[]>;
 }
+

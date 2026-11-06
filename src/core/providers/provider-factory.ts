@@ -44,3 +44,4 @@ export function getMailboxProvider(
 ): IMailboxProvider {
   return MailboxProviderStrategyFactory.getProvider(provider, customOptions);
 }
+

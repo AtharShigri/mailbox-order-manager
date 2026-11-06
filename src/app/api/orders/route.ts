@@ -5,7 +5,7 @@ import { jsonSuccess, jsonError } from '@/server/api/response';
 
 export async function POST(request: NextRequest) {
   try {
-    const currentUser = await requireUser();
+    const currentUser = await requireUser(request);
     const idempotencyKey = request.headers.get('idempotency-key');
     const body = await request.json();
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const currentUser = await requireUser();
+    const currentUser = await requireUser(request);
     const { searchParams } = new URL(request.url);
 
     const query = {
@@ -41,4 +41,3 @@ export async function GET(request: NextRequest) {
     return jsonError(error);
   }
 }
-

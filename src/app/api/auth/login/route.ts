@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { authService } from '@/server/services/auth.service';
-import { setSessionCookie } from '@/server/auth/session';
+import { setSessionCookieOnResponse } from '@/server/auth/session';
 import { jsonSuccess, jsonError } from '@/server/api/response';
 
 export async function POST(request: NextRequest) {
@@ -8,11 +8,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { user, token } = await authService.login(body);
 
-    await setSessionCookie(token);
+    const res = jsonSuccess({ user });
+    setSessionCookieOnResponse(res, token);
 
-    return jsonSuccess({ user });
+    return res;
   } catch (error) {
     return jsonError(error);
   }
 }
-

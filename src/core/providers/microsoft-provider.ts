@@ -62,3 +62,4 @@ export class MicrosoftProvider implements IMailboxProvider {
     return results;
   }
 }
+

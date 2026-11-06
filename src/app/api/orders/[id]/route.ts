@@ -8,11 +8,11 @@ interface RouteContext {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: RouteContext
 ) {
   try {
-    const currentUser = await requireUser();
+    const currentUser = await requireUser(request);
     const { id } = await context.params;
 
     const order = await orderService.getOrder(id, currentUser);
@@ -21,4 +21,3 @@ export async function GET(
     return jsonError(error);
   }
 }
-

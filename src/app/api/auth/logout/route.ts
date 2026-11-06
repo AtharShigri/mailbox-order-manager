@@ -1,12 +1,12 @@
-import { clearSessionCookie } from '@/server/auth/session';
+import { clearSessionCookieOnResponse } from '@/server/auth/session';
 import { jsonSuccess, jsonError } from '@/server/api/response';
 
 export async function POST() {
   try {
-    await clearSessionCookie();
-    return jsonSuccess({ message: 'Logged out successfully' });
+    const res = jsonSuccess({ message: 'Logged out successfully' });
+    clearSessionCookieOnResponse(res);
+    return res;
   } catch (error) {
     return jsonError(error);
   }
 }
-

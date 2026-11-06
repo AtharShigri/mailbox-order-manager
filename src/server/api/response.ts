@@ -6,6 +6,7 @@ import {
   ForbiddenError,
   NotFoundError,
   InvalidStateTransitionError,
+  ConflictError,
 } from '@/core/errors';
 
 export interface ApiResponse<T = unknown> {
@@ -90,6 +91,19 @@ export function jsonError(error: unknown): NextResponse<ApiResponse<null>> {
     );
   }
 
+  if (error instanceof ConflictError) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'CONFLICT',
+          message: error.message,
+        },
+      },
+      { status: 409 }
+    );
+  }
+
   if (error instanceof DomainError) {
     return NextResponse.json(
       {
@@ -115,3 +129,4 @@ export function jsonError(error: unknown): NextResponse<ApiResponse<null>> {
     { status: 500 }
   );
 }
+

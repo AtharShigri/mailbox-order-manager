@@ -34,3 +34,4 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
     return null;
   }
 }
+

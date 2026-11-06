@@ -38,3 +38,4 @@ describe('Authentication Integration Tests (Real DB)', () => {
     ).rejects.toThrow(UnauthorizedError);
   });
 });
+

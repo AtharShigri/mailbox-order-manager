@@ -51,7 +51,7 @@ model Order {
   provider       MailboxProvider
   mailboxCount   Int
   status         OrderStatus     @default(PENDING)
-  idempotencyKey String          @unique
+  idempotencyKey String
   lockedAt       DateTime?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -60,6 +60,7 @@ model Order {
   mailboxes      Mailbox[]
   auditLogs      AuditLog[]
 
+  @@unique([customerId, idempotencyKey])
   @@index([customerId])
   @@index([status])
   @@index([createdAt])

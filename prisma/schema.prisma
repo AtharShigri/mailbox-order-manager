@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum MailboxProvider {
+  GOOGLE
+  MICROSOFT
+}
+
+enum OrderStatus {
+  PENDING
+  PROVISIONING
+  ACTIVE
+  FAILED
+}
+
+enum MailboxStatus {
+  PENDING
+  ACTIVE
+  FAILED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         UserRole  @default(CUSTOMER)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  orders       Order[]
+
+  @@map("users")
+}
+
+model Order {
+  id             String          @id @default(cuid())
+  customerId     String
+  domain         String
+  provider       MailboxProvider
+  mailboxCount   Int
+  status         OrderStatus     @default(PENDING)
+  idempotencyKey String          @unique
+  lockedAt       DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  customer       User            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  mailboxes      Mailbox[]
+  auditLogs      AuditLog[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model Mailbox {
+  id           String        @id @default(cuid())
+  orderId      String
+  email        String
+  status       MailboxStatus @default(PENDING)
+  errorMessage String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  order        Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
+  @@map("mailboxes")
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  orderId        String
+  previousStatus OrderStatus?
+  newStatus      OrderStatus
+  actorId        String?
+  description    String
+  createdAt      DateTime     @default(now())
+
+  order          Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

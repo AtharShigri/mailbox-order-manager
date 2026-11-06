@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { authService } from '@/server/services/auth.service';
+import { authService } from '../../server/services/auth.service';
 import { DEMO_CREDENTIALS } from '../../../prisma/seed';
-import { UnauthorizedError } from '@/core/errors';
+import { UnauthorizedError } from '../../core/errors';
 import { UserRole } from '@prisma/client';
 
 describe('Authentication Integration Tests (Real DB)', () => {

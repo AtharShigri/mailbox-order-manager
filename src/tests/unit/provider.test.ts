@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { GoogleProvider } from '@/core/providers/google-provider';
-import { MicrosoftProvider } from '@/core/providers/microsoft-provider';
-import { getMailboxProvider } from '@/core/providers/provider-factory';
+import { GoogleProvider } from '../../core/providers/google-provider';
+import { MicrosoftProvider } from '../../core/providers/microsoft-provider';
+import { getMailboxProvider } from '../../core/providers/provider-factory';
 import { MailboxProvider } from '@prisma/client';
 
 describe('Mailbox Providers (Strategy Pattern)', () => {

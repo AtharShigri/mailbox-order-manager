@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { hashPassword, verifyPassword } from '@/lib/auth/password';
-import { signSessionToken, verifySessionToken } from '@/lib/auth/session';
-import { assertCustomerOwnsOrder } from '@/server/auth/session';
-import { AuthService } from '@/server/services/auth.service';
-import { UserRepository, SafeUser } from '@/server/repositories/user.repository';
-import { ForbiddenError, UnauthorizedError, ValidationError } from '@/core/errors';
+import { hashPassword, verifyPassword } from '../../lib/auth/password';
+import { signSessionToken, verifySessionToken } from '../../lib/auth/session';
+import { assertCustomerOwnsOrder } from '../../server/auth/session';
+import { AuthService } from '../../server/services/auth.service';
+import { UserRepository, SafeUser } from '../../server/repositories/user.repository';
+import { ForbiddenError, UnauthorizedError, ValidationError } from '../../core/errors';
 import { UserRole } from '@prisma/client';
 
 describe('Password Utilities', () => {

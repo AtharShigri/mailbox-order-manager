@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { NextRequest } from 'next/server';
-import { POST as loginHandler } from '@/app/api/auth/login/route';
-import { GET as meHandler } from '@/app/api/auth/me/route';
-import { POST as logoutHandler } from '@/app/api/auth/logout/route';
-import { POST as createOrderHandler, GET as listOrdersHandler } from '@/app/api/orders/route';
-import { GET as getOrderHandler } from '@/app/api/orders/[id]/route';
-import { GET as adminListOrdersHandler } from '@/app/api/admin/orders/route';
-import { POST as adminRetryOrderHandler } from '@/app/api/admin/orders/[id]/retry/route';
-import { prisma } from '@/server/db/client';
+import { POST as loginHandler } from '../../app/api/auth/login/route';
+import { GET as meHandler } from '../../app/api/auth/me/route';
+import { POST as logoutHandler } from '../../app/api/auth/logout/route';
+import { POST as createOrderHandler, GET as listOrdersHandler } from '../../app/api/orders/route';
+import { GET as getOrderHandler } from '../../app/api/orders/[id]/route';
+import { GET as adminListOrdersHandler } from '../../app/api/admin/orders/route';
+import { POST as adminRetryOrderHandler } from '../../app/api/admin/orders/[id]/retry/route';
+import { prisma } from '../../server/db/client';
 import { OrderStatus, MailboxStatus } from '@prisma/client';
-import { SESSION_COOKIE_NAME } from '@/server/auth/session';
+import { SESSION_COOKIE_NAME } from '../../server/auth/session';
 
 describe('Next.js API Route Endpoints Integration Tests', () => {
   let customer1Cookie: string;

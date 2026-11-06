@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { orderService } from '@/server/services/order.service';
-import { userRepository, SafeUser } from '@/server/repositories/user.repository';
-import { orderRepository } from '@/server/repositories/order.repository';
+import { orderService } from '../../server/services/order.service';
+import { userRepository, SafeUser } from '../../server/repositories/user.repository';
+import { orderRepository } from '../../server/repositories/order.repository';
 import { OrderStatus, MailboxProvider } from '@prisma/client';
-import { ConflictError, ForbiddenError, ValidationError } from '@/core/errors';
+import { ConflictError, ForbiddenError, ValidationError } from '../../core/errors';
 
 describe('Order Creation & State Machine Integration Tests (Real DB)', () => {
   let customer1: SafeUser;

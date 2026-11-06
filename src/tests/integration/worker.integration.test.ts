@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
-import { ProvisioningWorker } from '@/server/worker/provisioning-worker';
-import { orderService } from '@/server/services/order.service';
-import { orderRepository } from '@/server/repositories/order.repository';
-import { userRepository, SafeUser } from '@/server/repositories/user.repository';
-import { prisma } from '@/server/db/client';
+import { ProvisioningWorker } from '../../server/worker/provisioning-worker';
+import { orderService } from '../../server/services/order.service';
+import { orderRepository } from '../../server/repositories/order.repository';
+import { userRepository, SafeUser } from '../../server/repositories/user.repository';
+import { prisma } from '../../server/db/client';
 import { OrderStatus, MailboxStatus } from '@prisma/client';
 
 describe('Provisioning Worker Integration Tests (Real DB & Concurrency)', () => {

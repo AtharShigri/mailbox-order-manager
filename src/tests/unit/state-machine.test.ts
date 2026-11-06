@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { OrderStateMachine } from '@/core/state-machine';
+import { OrderStateMachine } from '../../core/state-machine';
 import { OrderStatus, UserRole } from '@prisma/client';
-import { InvalidStateTransitionError, ForbiddenError } from '@/core/errors';
+import { InvalidStateTransitionError, ForbiddenError } from '../../core/errors';
 
 describe('OrderStateMachine Unit Tests', () => {
   describe('Valid transitions', () => {

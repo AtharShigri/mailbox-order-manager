@@ -64,6 +64,9 @@ export class ProvisioningWorker {
   }
 
   private async provisionOrderMailboxes(order: OrderWithDetails): Promise<void> {
+    const isRetry = order.auditLogs.some((l) =>
+      l.description.toLowerCase().includes('retry')
+    );
     const provider = getMailboxProvider(order.provider, this.providerOptions);
     let anyFailed = false;
     let failedCount = 0;
@@ -71,7 +74,7 @@ export class ProvisioningWorker {
     for (const mailbox of order.mailboxes) {
       console.log(`[Worker] Provisioning ${mailbox.email} via ${provider.providerName}...`);
 
-      const result = await provider.provisionMailbox(mailbox.email);
+      const result = await provider.provisionMailbox(mailbox.email, { isRetry });
 
       const mailboxStatus = result.status === 'ACTIVE' ? MailboxStatus.ACTIVE : MailboxStatus.FAILED;
       if (mailboxStatus === MailboxStatus.FAILED) {

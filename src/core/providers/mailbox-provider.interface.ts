@@ -10,7 +10,7 @@ export interface ProvisionMailboxResult {
 
 export interface IMailboxProvider {
   readonly providerName: MailboxProvider;
-  provisionMailbox(email: string): Promise<ProvisionMailboxResult>;
-  provisionMailboxes(emails: string[]): Promise<ProvisionMailboxResult[]>;
+  provisionMailbox(email: string, context?: { isRetry?: boolean }): Promise<ProvisionMailboxResult>;
+  provisionMailboxes(emails: string[], context?: { isRetry?: boolean }): Promise<ProvisionMailboxResult[]>;
 }
 

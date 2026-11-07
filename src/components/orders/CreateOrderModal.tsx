@@ -19,16 +19,14 @@ export function CreateOrderModal({ isOpen, onClose, onSuccess }: CreateOrderModa
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Initialize or reset idempotency key when opening modal
+  // Generate a fresh idempotency key each time the modal opens
   useEffect(() => {
     if (isOpen) {
-      if (!idempotencyKey) {
-        setIdempotencyKey(crypto.randomUUID());
-      }
+      setIdempotencyKey(crypto.randomUUID());
       setError(null);
       setSuccessMessage(null);
     }
-  }, [isOpen, idempotencyKey]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
